@@ -194,3 +194,45 @@ if (terkepElem) {
     });
   });
 }
+const weatherCodes = {
+  0: "Derült", 1: "Többnyire derült", 2: "Részben felhős", 3: "Borult",
+  45: "Köd", 48: "Zúzmara köd", 51: "Szitálás", 53: "Szitálás", 55: "Erős szitálás",
+  61: "Enyhe eső", 63: "Eső", 65: "Erős eső", 66: "Fagyos eső", 67: "Erős fagyos eső",
+  71: "Enyhe hó", 73: "Hóesés", 75: "Erős hó", 77: "Hószemcsék",
+  80: "Enyhe zápor", 81: "Zápor", 82: "Erős zápor", 85: "Hózápor", 86: "Erős hózápor",
+  95: "Zivatar", 96: "Zivatar jéggel", 99: "Erős zivatar"
+};
+
+async function loadWeather() {
+  const widget = document.getElementById("weatherWidget");
+  try {
+    const res = await fetch(
+      "https://api.open-meteo.com/v1/forecast?latitude=47.4979&longitude=19.0402&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m&timezone=Europe/Budapest"
+    );
+    if (!res.ok) throw new Error("Hálózati hiba");
+    const data = await res.json();
+    const c = data.current;
+
+    widget.classList.remove("loading");
+    widget.innerHTML = `
+      <div class="w-city">Budapest</div>
+      <div class="w-temp">${Math.round(c.temperature_2m)}°</div>
+      <div class="w-desc">${weatherCodes[c.weather_code] || "Ismeretlen"}</div>
+      <div class="w-details">
+        <span>💧 ${c.relative_humidity_2m}%</span>
+        <span>💨 ${Math.round(c.wind_speed_10m)} km/h</span>
+      </div>
+    `;
+  } catch (err) {
+    widget.classList.remove("loading");
+    widget.classList.add("error");
+    widget.innerHTML = `
+      <div class="w-city">Budapest</div>
+      <div class="w-temp">—°</div>
+      <div class="w-desc">Nem elérhető</div>
+      <div class="w-details"><span>Próbáld újra később</span></div>
+    `;
+  }
+}
+
+loadWeather();
